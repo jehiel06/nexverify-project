@@ -1,40 +1,39 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'success_screen.dart';
 
 class ScannerScreen extends StatelessWidget {
+  const ScannerScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
-    // Prevent crash on Web
     if (kIsWeb) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Scan QR')),
+        appBar: AppBar(title: const Text("QR Scanner")),
         body: const Center(
-          child: Text(
-            'QR Scanner not supported on Web.\nRun on Android Emulator.',
-            textAlign: TextAlign.center,
-          ),
+          child: Text("QR scanner not supported on Web"),
         ),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Scan QR')),
+      appBar: AppBar(title: const Text("Scan QR Code")),
       body: MobileScanner(
-        onDetect: (BarcodeCapture capture) {
+        // removed allowDuplicates
+        onDetect: (capture) {
           final List<Barcode> barcodes = capture.barcodes;
-
-          if (barcodes.isEmpty) {
-            Navigator.pushReplacementNamed(context, '/error');
-            return;
-          }
-
-          final String? code = barcodes.first.rawValue;
+          final String? code = barcodes.isNotEmpty ? barcodes.first.rawValue : null;
 
           if (code != null && code.startsWith('http')) {
-            Navigator.pushReplacementNamed(context, '/success');
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const SuccessScreen()),
+            );
           } else {
-            Navigator.pushReplacementNamed(context, '/error');
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Invalid QR Code")),
+            );
           }
         },
       ),
